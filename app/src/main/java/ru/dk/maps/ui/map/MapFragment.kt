@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -16,11 +17,13 @@ import com.google.android.gms.location.LocationServices
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
 import ru.dk.maps.R
 import ru.dk.maps.data.LocationState
+import ru.dk.maps.data.hideKeyboard
 import ru.dk.maps.data.toPoint
 import ru.dk.maps.databinding.FragmentMapBinding
 
@@ -32,6 +35,15 @@ class MapFragment : Fragment() {
     private val viewModel: MapViewModel by viewModels()
     private lateinit var mapView: MapView
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var isAddButtonActive = false
+
+    private val placeMarkTapListener = MapObjectTapListener { _, point ->
+        Toast.makeText(
+            this@MapFragment.requireContext(),
+            "Tapped the point (${point.longitude}, ${point.latitude})", Toast.LENGTH_SHORT
+        ).show()
+        true
+    }
 
 
     override fun onCreateView(
@@ -47,11 +59,6 @@ class MapFragment : Fragment() {
 
         initViews()
         initViewModel()
-
-        context?.let {
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-            viewModel.getMyLocationRequest(fusedLocationClient)
-        }
     }
 
     private fun showLocation(location: Location?) {
@@ -69,18 +76,24 @@ class MapFragment : Fragment() {
     }
 
     private fun initViewModel() {
+        viewModel.getMyLocationRequest(fusedLocationClient)
 
         lifecycleScope.launch() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.stateFlow.collect {
                     when (it) {
                         is LocationState.Error -> {
-                            Toast.makeText(requireContext(), "${it.throwable.message}", Toast.LENGTH_SHORT)
+                            Toast.makeText(
+                                requireContext(),
+                                "${it.throwable.message}",
+                                Toast.LENGTH_SHORT
+                            )
                                 .show()
                         }
 
                         LocationState.Loading -> {
-                            Toast.makeText(requireContext(), "Get position", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Get position", Toast.LENGTH_SHORT)
+                                .show()
                         }
 
                         is LocationState.Success -> showLocation(it.location)
@@ -91,7 +104,10 @@ class MapFragment : Fragment() {
     }
 
     private fun initViews() {
+
         MapKitFactory.initialize(requireContext())
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
         binding.apply {
             mapView = map
             mapView.map.isZoomGesturesEnabled = true
@@ -118,9 +134,42 @@ class MapFragment : Fragment() {
                     viewModel.getMyLocationRequest(fusedLocationClient)
                 }
             }
+            addPlaceMark.setOnClickListener {
+
+                isAddButtonActive = !isAddButtonActive
+
+                if (isAddButtonActive) {
+                    showAddLayer(isAddButtonActive)
+                } else {
+                    showAddLayer(isAddButtonActive)
+                }
+
+                btnAccept.setOnClickListener {
+                    val imageProvider =
+                        ImageProvider.fromResource(requireContext(), R.drawable.icon_point)
+                    val marker = mapView.map.mapObjects.addPlacemark(
+                        mapView.map.cameraPosition.target,
+                        imageProvider
+                    )
+                    marker.addTapListener(placeMarkTapListener)
+                    isAddButtonActive = !isAddButtonActive
+                    showAddLayer(isAddButtonActive)
+                    etMarkerTitle.text.clear()
+                    requireContext().hideKeyboard(it)
+                }
+
+
+            }
         }
 
+    }
 
+    private fun showAddLayer(active: Boolean) {
+        binding.apply {
+            marker.isVisible = active
+            etMarkerTitle.isVisible = active
+            btnAccept.isVisible = active
+        }
     }
 
     override fun onStart() {

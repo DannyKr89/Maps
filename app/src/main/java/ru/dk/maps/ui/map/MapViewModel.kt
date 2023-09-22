@@ -34,8 +34,5 @@ class MapViewModel : ViewModel() {
                     }
                 }
         }
-
-
     }
-
 }
