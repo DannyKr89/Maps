@@ -1,25 +1,37 @@
 package ru.dk.maps.ui.map
 
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
-import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.mapview.MapView
+import com.yandex.runtime.image.ImageProvider
+import kotlinx.coroutines.launch
+import ru.dk.maps.R
+import ru.dk.maps.data.LocationState
+import ru.dk.maps.data.toPoint
 import ru.dk.maps.databinding.FragmentMapBinding
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
 class MapFragment : Fragment() {
 
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: MapViewModel by viewModels()
     private lateinit var mapView: MapView
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
 
     override fun onCreateView(
@@ -33,15 +45,82 @@ class MapFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initViews()
+        initViewModel()
+
+        context?.let {
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+            viewModel.getMyLocationRequest(fusedLocationClient)
+        }
+    }
+
+    private fun showLocation(location: Location?) {
+        if (location != null) {
+            mapView.map.mapObjects.addPlacemark(
+                location.toPoint(),
+                ImageProvider.fromResource(requireContext(), R.drawable.ic_my_loc)
+            )
+            mapView.map.move(
+                CameraPosition(location.toPoint(), 18f, 0f, 0f),
+                Animation(Animation.Type.SMOOTH, 0.5f),
+                null
+            )
+        }
+    }
+
+    private fun initViewModel() {
+
+        lifecycleScope.launch() {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.stateFlow.collect {
+                    when (it) {
+                        is LocationState.Error -> {
+                            Toast.makeText(requireContext(), "${it.throwable.message}", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+
+                        LocationState.Loading -> {
+                            Toast.makeText(requireContext(), "Get position", Toast.LENGTH_SHORT).show()
+                        }
+
+                        is LocationState.Success -> showLocation(it.location)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initViews() {
         MapKitFactory.initialize(requireContext())
+        binding.apply {
+            mapView = map
+            mapView.map.isZoomGesturesEnabled = true
 
-        mapView = binding.map
+            mapZoomIn.setOnClickListener {
+                val zoom = mapView.map.cameraPosition.zoom + 1
+                mapView.map.move(
+                    CameraPosition(mapView.map.cameraPosition.target, zoom, 0f, 0f),
+                    Animation(Animation.Type.SMOOTH, 0.3f),
+                    null
+                )
+            }
 
-        mapView.map.move(
-            CameraPosition(Point(55.751574, 37.573856), 11f, 0f, 0f),
-            Animation(Animation.Type.SMOOTH, 0f),
-            null
-        )
+            mapZoomOut.setOnClickListener {
+                val zoom = mapView.map.cameraPosition.zoom - 1
+                mapView.map.move(
+                    CameraPosition(mapView.map.cameraPosition.target, zoom, 0f, 0f),
+                    Animation(Animation.Type.SMOOTH, 0.3f),
+                    null
+                )
+            }
+            findMe.setOnClickListener {
+                context?.let {
+                    viewModel.getMyLocationRequest(fusedLocationClient)
+                }
+            }
+        }
+
+
     }
 
     override fun onStart() {
