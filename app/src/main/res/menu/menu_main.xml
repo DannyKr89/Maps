@@ -1,10 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="ru.dk.maps.ui.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title=""
-        app:showAsAction="never" />
+        android:id="@+id/fragment_map"
+        android:icon="@drawable/ic_map"
+        android:title="@string/menu_map" />
+    <item
+        android:id="@+id/fragment_markers"
+        android:icon="@drawable/ic_markers"
+        android:title="@string/menu_markers" />
 </menu>

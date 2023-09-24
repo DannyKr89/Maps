@@ -18,7 +18,8 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         app:layout_constraintBottom_toTopOf="@id/map_zoom_out"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/map_zoom_out"
@@ -27,7 +28,8 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_remove"
         app:layout_constraintBottom_toTopOf="@id/find_me"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/find_me"
@@ -36,7 +38,8 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_marker"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_place_mark"
@@ -45,28 +48,31 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_add_location"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="ContentDescription" />
 
     <EditText
         android:id="@+id/et_marker_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@id/add_place_mark"
         app:layout_constraintEnd_toStartOf="@id/btn_accept"
         app:layout_constraintStart_toEndOf="@id/add_place_mark"
-        app:layout_constraintBottom_toBottomOf="@id/add_place_mark"
-        app:layout_constraintTop_toTopOf="@id/add_place_mark" />
+        app:layout_constraintTop_toTopOf="@id/add_place_mark"
+        android:inputType="text"
+        android:autofillHints="title" />
 
     <Button
         android:id="@+id/btn_accept"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ok"
+        android:text="@string/ok"
         android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@id/et_marker_title"
         app:layout_constraintEnd_toStartOf="@id/find_me"
         app:layout_constraintStart_toEndOf="@id/et_marker_title"
-        app:layout_constraintTop_toTopOf="@id/et_marker_title"
-        app:layout_constraintBottom_toBottomOf="@id/et_marker_title"/>
+        app:layout_constraintTop_toTopOf="@id/et_marker_title" />
 
     <ImageView
         android:id="@+id/marker"
@@ -78,6 +84,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
