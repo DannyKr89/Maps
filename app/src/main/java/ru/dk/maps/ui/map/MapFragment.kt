@@ -35,7 +35,6 @@ class MapFragment : Fragment() {
 
     private val viewModel: MapViewModel by activityViewModel()
     private lateinit var mapView: MapView
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var isAddButtonActive = false
     private var myPoint = Point(0.0, 0.0)
 
@@ -78,7 +77,6 @@ class MapFragment : Fragment() {
 
     private fun initViewModel() {
         viewModel.getMarkers()
-        viewModel.getMyLocationRequest(fusedLocationClient)
 
         viewModel.markersLiveData.observe(viewLifecycleOwner) { markers ->
             markers.forEach {
@@ -142,8 +140,6 @@ class MapFragment : Fragment() {
     }
 
     private fun initViews() {
-
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         binding.apply {
 
